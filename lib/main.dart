@@ -72,7 +72,9 @@ class _MyPageState extends State<MyPage> {
 
       if(response.statusCode == 200){
         final token = response.headers['authorization'];
+        final refresh = response.headers['set-cookie'];
         provider.accessToken = token!;
+        provider.refreshToken = refresh!;
         return true;
       }else if(response.statusCode == 401){
         final msg = json.decode(utf8.decode(response.bodyBytes))['error'];
@@ -94,88 +96,100 @@ class _MyPageState extends State<MyPage> {
         backgroundColor: Colors.redAccent,
         centerTitle: true,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(30),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      key: ValueKey(1),
-                      validator: (value){
-                        if(value!.isEmpty){
-                          return "input username";
-                        }
-                        return null;
-                      },
-                      onSaved: (value){
-                        username = value!;
-                      },
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.account_circle, color: Colors.grey,),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue),
-                          borderRadius: BorderRadius.circular(30),
+      body: Builder(
+          builder: (context){
+            return GestureDetector(
+              onTap: (){
+                FocusScope.of(context).unfocus();
+              },
+              child: SingleChildScrollView(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: MediaQuery.of(context).size.height,
+                        padding: EdgeInsets.all(30),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                key: ValueKey(1),
+                                validator: (value){
+                                  if(value!.isEmpty){
+                                    return "input username";
+                                  }
+                                  return null;
+                                },
+                                onSaved: (value){
+                                  username = value!;
+                                },
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.account_circle, color: Colors.grey,),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.blue),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  hintText: "username",
+                                  contentPadding: EdgeInsets.all(10),
+                                ),
+                              ),
+                              SizedBox(height: 10,),
+                              TextFormField(
+                                key: ValueKey(2),
+                                validator: (value){
+                                  if(value!.isEmpty){
+                                    return "input password";
+                                  }
+                                  return null;
+                                },
+                                onSaved: (value){
+                                  password = value!;
+                                },
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.lock, color: Colors.grey,),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.blue),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  hintText: "password",
+                                  contentPadding: EdgeInsets.all(10),
+                                ),
+                                obscureText: true,
+                              ),
+                              SizedBox(height: 10,),
+                              ElevatedButton(
+                                onPressed: () {
+                                  if(tryValidation()){
+                                    loginRequest().then((data){
+                                      if(data){
+                                        Navigator.push(context, MaterialPageRoute(
+                                            builder: (context)=> Dice()
+                                        ));
+                                      }
+                                    });
+                
+                                  }else{
+                                    showSnackBar(context, "올바른 계정정보를 입력하세요.");
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red
+                                ),
+                                child:Icon(Icons.arrow_forward, color: Colors.white,),
+                              )
+                            ],
+                          ),
                         ),
-                        hintText: "username",
-                        contentPadding: EdgeInsets.all(10),
-                      ),
-                    ),
-                    SizedBox(height: 10,),
-                    TextFormField(
-                      key: ValueKey(2),
-                      validator: (value){
-                        if(value!.isEmpty){
-                          return "input password";
-                        }
-                        return null;
-                      },
-                      onSaved: (value){
-                        password = value!;
-                      },
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.lock, color: Colors.grey,),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        hintText: "password",
-                        contentPadding: EdgeInsets.all(10),
-                      ),
-                      obscureText: true,
-                    ),
-                    SizedBox(height: 10,),
-                    ElevatedButton(
-                        onPressed: () {
-                          if(tryValidation()){
-                            loginRequest().then((data){
-                              if(data){
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context)=> Dice()
-                                ));
-                              }
-                            });
-
-                          }else{
-                            showSnackBar(context, "올바른 계정정보를 입력하세요.");
-                          }
-                        },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red
-                      ),
-                        child:Icon(Icons.arrow_forward, color: Colors.white,),
-                    )
-                  ],
+                      )
+                    ],
+                  ),
                 ),
               ),
-            )
-          ],
-        ),
-      ),
+            );
+          }
+      )
     );
   }
 }
